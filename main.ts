@@ -1,139 +1,64 @@
 import { Project, SyntaxKind } from "ts-morph";
 
-import type { VariableDeclaration, ObjectLiteralExpression, SourceFile } from "ts-morph";
+import type { VariableDeclaration, ObjectLiteralExpression, SourceFile, ArrayLiteralExpression } from "ts-morph";
 
 // プロジェクトとソースファイルを初期化
 const project = new Project();
 const sourceFiles = project.addSourceFilesAtPaths(
-[  "./datasources/sample.ts" ]
+  ["./datasources/sample.ts"]
 );
 
+// 初期化式が配列リテラルである変数宣言を取得
 const getArrayLiteralDeclarations = (sourceFile: SourceFile[]): VariableDeclaration[] =>
   sourceFile.flatMap((e) => e.getVariableDeclarations()
     .filter((declaration) =>
       declaration.getInitializer()?.getKind() === SyntaxKind.ArrayLiteralExpression
     )
-)
+  )
 
-const combineAndDefineNameOptional = (
-  objectLiterals: ObjectLiteralExpression[],
-  properties: string[],
-  targetProperty: string
-) => {
-  objectLiterals.forEach((objectLiteral, idx) => {
-    console.log({ status: `${idx + 1}/${objectLiterals.length}` });
-
-    // Collect values of the specified properties
-    const values: string[] = [];
-    properties.forEach((propName) => {
-      const property = objectLiteral.getProperty(propName);
-      if (property && property.getKindName() === "PropertyAssignment") {
-        const initializer = property.getFirstChild();
-        if (initializer) {
-          values.push(initializer.getText());
-        }
-      }
-    });
-
-    // If no values are found, skip modification
-    if (values.length === 0) return;
-
-    // Define the combined value in the target property
-    const combinedValue = values.join(" ");
-    const existingTargetProperty = objectLiteral.getProperty(targetProperty);
-
-    if (existingTargetProperty) {
-      existingTargetProperty.replaceWithText(`${targetProperty}: \"${combinedValue}\"`);
-    } else {
-      objectLiteral.addPropertyAssignment({
-        name: targetProperty,
-        initializer: `\"${combinedValue}\"`,
-      });
-    }
-
-    // Remove the original properties
-    removeProperties(objectLiteral, properties);
-  });
-};
-
- 
+// 配列リテラルの要素を収集
 const collectObjectLiterals = (declarations: VariableDeclaration[]): ObjectLiteralExpression[] =>
-    declarations.flatMap((declaration) => {
+  declarations.flatMap((declaration) => {
     const initializer = declaration.getInitializer();
-    const arrayLiteral = initializer?.asKind(SyntaxKind.ArrayLiteralExpression);
+    const arrayLiteral = initializer?.asKind(SyntaxKind.ArrayLiteralExpression) as ArrayLiteralExpression;
     return arrayLiteral
       ? arrayLiteral.getElements().filter((element) =>
-          element.getKind() === SyntaxKind.ObjectLiteralExpression
-        ) as ObjectLiteralExpression[]
+        element.getKind() === SyntaxKind.ObjectLiteralExpression
+      ) as ObjectLiteralExpression[]
       : [];
   });
 
-const removeProperties = (objectLiterals: ObjectLiteralExpression[], properties: string[]) =>
-    objectLiterals.forEach((objectLiteral, idx) => {
-      console.log({rest : `${idx}/${objectLiterals.length}`})
-    properties.forEach((propName) => {
-      const property = objectLiteral.getProperty(propName);
-      if (property) {
-        property.remove();
-      }
-    });
-  });
-
-const combineAndDefineName = (
-  objectLiterals: ObjectLiteralExpression[],
-  properties: string[],
-  targetProperty: string
-) => {
+const mergeStringProperties = (objectLiterals: ObjectLiteralExpression[], properties: string[],targetProps : string) =>
   objectLiterals.forEach((objectLiteral, idx) => {
-    console.log({ status: `${idx + 1}/${objectLiterals.length}` });
-
-    // Collect values of the specified properties
-    const values: string[] = [];
+    console.log({ rest: `${idx}/${objectLiterals.length}` })
     properties.forEach((propName) => {
       const property = objectLiteral.getProperty(propName);
-      if (property && property.getKindName() === "PropertyAssignment") {
-        const initializer = property.getFirstChild();
-        if (initializer) {
-          values.push(initializer.getText());
-        }
+      console.log({ property: property?.getText() })
+
+      if (property) {
+        // console.log({ property })
+
       }
     });
-
-    // Define the combined value in the target property
-    const combinedValue = values.join(" ");
-    const existingTargetProperty = objectLiteral.getProperty(targetProperty);
-
-    if (existingTargetProperty) {
-      existingTargetProperty.replaceWithText(`${targetProperty}: \"${combinedValue}\"`);
-    } else {
-      objectLiteral.addPropertyAssignment({
-        name: targetProperty,
-        initializer: `\"${combinedValue}\"`,
-      });
-    }
-
-    // Remove the original properties
-    removeProperties(objectLiteral, properties);
   });
-};
 
-
+// メイン処理
 const main = async () => {
-    console.log("step1")
-    const declarations = getArrayLiteralDeclarations(sourceFiles);
-    console.log("step2")
-    const objectLiterals = collectObjectLiterals(declarations);
-    console.log("step3")
-    console.log({count : objectLiterals.length})
-  removeProperties(objectLiterals, ["id", "degree", "searchKey"]);
-    console.log("step4")
+  console.log("step1")
+  const declarations = getArrayLiteralDeclarations(sourceFiles);
+  console.log("step2")
+  const objectLiterals = collectObjectLiterals(declarations);
+  console.log("step3")
+  console.log({ count: objectLiterals.length })
+  mergeStringProperties(objectLiterals, ["name", "faculty", "department"],"name");
+  console.log("step4")
 
-  try {
-    await sourceFiles.forEach(e => e.save());
-    console.log("Updated file saved!");
-  } catch (error) {
-    console.error("Error saving file:", error);
-  }
+  // try {
+  //   await sourceFiles.forEach(e => e.save());
+  //   console.log("Updated file saved!");
+  // } catch (error) {
+  //   console.error("Error saving file:", error);
+  // }
 };
 
 // 実行
