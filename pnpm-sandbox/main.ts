@@ -31,11 +31,17 @@ const collectObjectLiterals = (declarations: VariableDeclaration[]): ObjectLiter
 const mergeStringProperties = (objectLiterals: ObjectLiteralExpression[], properties: string[], targetProps: string) =>
     objectLiterals.forEach((objectLiteral, idx) => {
         console.log({ rest: `${idx}/${objectLiterals.length}` })
+        
         properties.forEach((propName) => {
-
-            console.log({ objectLiteral })
+            const v = objectLiteral.getProperty(propName)
+            console.log({ v: v.getInitializer().getText()})
+    //    const value =      objectLiteral.getText(propName)
+    //       console.log({value})
         });
     });
+
+
+
 
 // メイン処理
 const main = async () => {
