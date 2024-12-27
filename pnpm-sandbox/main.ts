@@ -32,14 +32,13 @@ const mergeStringProperties = (objectLiterals: ObjectLiteralExpression[], proper
     objectLiterals.forEach((objectLiteral, idx) => {
         console.log({ rest: `${idx}/${objectLiterals.length}` })
         
-        properties.forEach((propName) => {
+        const mergeString =  properties.map((propName) => {
             const v = objectLiteral.getProperty(propName)
-            console.log({ v: v.getInitializer().getText()})
-    //    const value =      objectLiteral.getText(propName)
-    //       console.log({value})
-        });
+            console.log({v})
+            return v ? v.getInitializer().getText().replace(/'/g, '') : undefined
+        }).filter(e => e).join(" ");
+        console.log({ mergeString })
     });
-
 
 
 

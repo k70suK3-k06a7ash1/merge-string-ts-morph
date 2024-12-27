@@ -7,7 +7,6 @@ export const sampleList = [
     },
     {
         name: '愛知医科大学',
-        faculty: '看護学部',
         department: '看護学科',
         nameKana: 'あいちいかだいがく',
     },
