@@ -1,4 +1,4 @@
-import { Project, SyntaxKind } from "ts-morph";
+import { Project, SyntaxKind } from "npm:ts-morph";
 
 import type { VariableDeclaration, ObjectLiteralExpression, SourceFile, ArrayLiteralExpression } from "ts-morph";
 
@@ -32,8 +32,9 @@ const mergeStringProperties = (objectLiterals: ObjectLiteralExpression[], proper
   objectLiterals.forEach((objectLiteral, idx) => {
     console.log({ rest: `${idx}/${objectLiterals.length}` })
     properties.forEach((propName) => {
+      const isPropertyAssignment = objectLiteral.getKind() === SyntaxKind.
       const property = objectLiteral.getProperty(propName);
-      console.log({ property: property?.getText() })
+      console.log({ property: property?.getinitia })
 
       if (property) {
         // console.log({ property })
