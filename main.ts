@@ -1,4 +1,4 @@
-import { Project, SyntaxKind } from "npm:ts-morph";
+import { Project, SyntaxKind } from "ts-morph";
 
 import type { VariableDeclaration, ObjectLiteralExpression, SourceFile } from "ts-morph";
 
