@@ -14,6 +14,48 @@ const getArrayLiteralDeclarations = (sourceFile: SourceFile[]): VariableDeclarat
       declaration.getInitializer()?.getKind() === SyntaxKind.ArrayLiteralExpression
     )
 )
+
+const combineAndDefineNameOptional = (
+  objectLiterals: ObjectLiteralExpression[],
+  properties: string[],
+  targetProperty: string
+) => {
+  objectLiterals.forEach((objectLiteral, idx) => {
+    console.log({ status: `${idx + 1}/${objectLiterals.length}` });
+
+    // Collect values of the specified properties
+    const values: string[] = [];
+    properties.forEach((propName) => {
+      const property = objectLiteral.getProperty(propName);
+      if (property && property.getKindName() === "PropertyAssignment") {
+        const initializer = property.getFirstChild();
+        if (initializer) {
+          values.push(initializer.getText());
+        }
+      }
+    });
+
+    // If no values are found, skip modification
+    if (values.length === 0) return;
+
+    // Define the combined value in the target property
+    const combinedValue = values.join(" ");
+    const existingTargetProperty = objectLiteral.getProperty(targetProperty);
+
+    if (existingTargetProperty) {
+      existingTargetProperty.replaceWithText(`${targetProperty}: \"${combinedValue}\"`);
+    } else {
+      objectLiteral.addPropertyAssignment({
+        name: targetProperty,
+        initializer: `\"${combinedValue}\"`,
+      });
+    }
+
+    // Remove the original properties
+    removeProperties(objectLiteral, properties);
+  });
+};
+
  
 const collectObjectLiterals = (declarations: VariableDeclaration[]): ObjectLiteralExpression[] =>
     declarations.flatMap((declaration) => {
